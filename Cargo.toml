@@ -1,0 +1,18 @@
+[package]
+name = "hoverlay"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cosmic-text = "0.19.0"
+etcetera = "0.11.0"
+mlua = { version = "0.12.1", features = ["lua55", "vendored"] }
+softbuffer = "0.4.8"
+winit = "0.30.13"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
