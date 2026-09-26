@@ -1,14 +1,22 @@
 use crate::{lua::Configuration, render::RenderEngine, viewport::ViewportManager};
-use std::error::Error;
+use std::{
+    error::Error,
+    time::{Duration, Instant},
+};
 use winit::{
-    application::ApplicationHandler, event::WindowEvent, event_loop::ActiveEventLoop,
+    application::ApplicationHandler,
+    event::WindowEvent,
+    event_loop::{ActiveEventLoop, ControlFlow},
     window::WindowId,
 };
+
+const RENDER_INTERVAL: Duration = Duration::from_secs(1);
 
 pub struct Application {
     configuration: Configuration,
     viewport_manager: ViewportManager,
     render_engine: Option<RenderEngine>,
+    next_render_time: Instant,
 }
 
 impl Application {
@@ -20,6 +28,7 @@ impl Application {
             configuration,
             viewport_manager,
             render_engine: None,
+            next_render_time: Instant::now() + RENDER_INTERVAL,
         })
     }
 
@@ -34,30 +43,44 @@ impl Application {
     }
 
     fn render(&mut self) -> Result<(), Box<dyn Error>> {
-        if let Some(render_engine) = &mut self.render_engine {
-            render_engine.render()?;
-        }
+        self.configuration.update();
+
+        self.render_engine()?.render()?;
 
         Ok(())
     }
 
     fn resize(&mut self, width: u32, height: u32) -> Result<(), Box<dyn Error>> {
-        if let Some(render_engine) = &mut self.render_engine {
-            render_engine.resize(width, height)?;
-        }
-
+        self.render_engine()?.resize(width, height)?;
         self.viewport_manager.reposition();
 
         Ok(())
+    }
+
+    fn render_engine(&mut self) -> Result<&mut RenderEngine, Box<dyn Error>> {
+        self.render_engine
+            .as_mut()
+            .ok_or_else(|| "Render engine is not initialized".into())
     }
 }
 
 impl ApplicationHandler for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if let Err(error) = self.resume(event_loop) {
-            eprintln!("Failed to resume application: {error}");
+            eprintln!("Resume failed: {error}");
             event_loop.exit();
         }
+    }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        let now = Instant::now();
+
+        if now >= self.next_render_time {
+            self.viewport_manager.request_redraw();
+            self.next_render_time += RENDER_INTERVAL;
+        }
+
+        event_loop.set_control_flow(ControlFlow::WaitUntil(self.next_render_time));
     }
 
     fn window_event(
@@ -73,7 +96,7 @@ impl ApplicationHandler for Application {
 
             WindowEvent::Resized(size) => {
                 if let Err(error) = self.resize(size.width, size.height) {
-                    eprintln!("Failed to resize renderer: {error}");
+                    eprintln!("Resize failed: {error}");
                     event_loop.exit();
                 }
             }

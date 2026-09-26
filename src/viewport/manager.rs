@@ -44,13 +44,10 @@ impl ViewportManager {
         Ok(viewport)
     }
 
-    fn viewport_attributes() -> WindowAttributes {
-        WindowAttributes::default()
-            .with_blur(false)
-            .with_title("hoverlay")
-            .with_transparent(true)
-            .with_decorations(false)
-            .with_window_level(WindowLevel::AlwaysOnTop)
+    pub fn request_redraw(&self) {
+        if let Some(viewport) = &self.viewport {
+            viewport.request_redraw();
+        }
     }
 
     pub fn reposition(&self) {
@@ -128,5 +125,14 @@ impl ViewportManager {
                 monitor_position + monitor_height as i32 - viewport_height as i32 - offset
             }
         }
+    }
+
+    fn viewport_attributes() -> WindowAttributes {
+        WindowAttributes::default()
+            .with_blur(false)
+            .with_title("hoverlay")
+            .with_transparent(true)
+            .with_decorations(false)
+            .with_window_level(WindowLevel::AlwaysOnTop)
     }
 }
