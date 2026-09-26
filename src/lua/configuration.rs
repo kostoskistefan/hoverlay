@@ -30,11 +30,11 @@ impl Configuration {
         self.container.update();
     }
 
-    pub fn is_dynamic(&self) -> bool {
+    pub fn is_static(&self) -> bool {
         self.container
             .children
             .iter()
-            .any(|element| element.content.resolve_function.is_some())
+            .all(|element| element.content.resolve_function.is_some())
     }
 
     fn get_file_contents(file_path: PathBuf) -> Result<String, Box<dyn Error>> {

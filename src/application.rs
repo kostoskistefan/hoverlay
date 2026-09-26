@@ -46,8 +46,6 @@ impl Application {
         self.configuration.update();
         self.render_engine()?.render()?;
 
-        println!("Render {:?}", Instant::now());
-
         Ok(())
     }
 
@@ -74,19 +72,18 @@ impl ApplicationHandler for Application {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        if !self.configuration.is_dynamic() {
+        if self.configuration.is_static() {
             event_loop.set_control_flow(ControlFlow::Wait);
             return;
         }
 
-        let now = Instant::now();
-
-        if now >= self.next_render_time {
-            self.viewport_manager.request_redraw();
-            self.next_render_time += RENDER_INTERVAL;
+        if Instant::now() < self.next_render_time {
+            event_loop.set_control_flow(ControlFlow::WaitUntil(self.next_render_time));
+            return;
         }
 
-        event_loop.set_control_flow(ControlFlow::WaitUntil(self.next_render_time));
+        self.viewport_manager.request_redraw();
+        self.next_render_time += RENDER_INTERVAL;
     }
 
     fn window_event(
