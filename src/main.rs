@@ -3,6 +3,7 @@ use std::error::Error;
 use winit::event_loop::{ControlFlow, EventLoop};
 
 mod application;
+mod font;
 mod lua;
 mod render;
 mod viewport;

@@ -597,6 +597,8 @@ dependencies = [
  "etcetera",
  "mlua",
  "softbuffer",
+ "sys-locale",
+ "unicode-script",
  "winit",
 ]
 

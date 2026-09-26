@@ -1,4 +1,6 @@
-use crate::{lua::Configuration, render::RenderEngine, viewport::ViewportManager};
+use crate::{
+    font::manager::FontManager, lua::Configuration, render::RenderEngine, viewport::ViewportManager,
+};
 use std::{
     error::Error,
     time::{Duration, Instant},
@@ -15,6 +17,7 @@ const RENDER_INTERVAL: Duration = Duration::from_secs(1);
 pub struct Application {
     configuration: Configuration,
     viewport_manager: ViewportManager,
+    font_manager: FontManager,
     render_engine: Option<RenderEngine>,
     next_render_time: Instant,
 }
@@ -23,12 +26,16 @@ impl Application {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let configuration = Configuration::load()?;
         let viewport_manager = ViewportManager::new(configuration.viewport.clone());
+        let font_manager = FontManager::new();
+        let render_engine = None;
+        let next_render_time = Instant::now() + RENDER_INTERVAL;
 
         Ok(Self {
             configuration,
             viewport_manager,
-            render_engine: None,
-            next_render_time: Instant::now() + RENDER_INTERVAL,
+            font_manager,
+            render_engine,
+            next_render_time,
         })
     }
 
