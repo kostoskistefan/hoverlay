@@ -27,7 +27,7 @@ impl FontManager {
         Self { font_system }
     }
 
-    pub fn font_system(&mut self) -> &mut FontSystem {
+    pub fn font_system_mut(&mut self) -> &mut FontSystem {
         &mut self.font_system
     }
 }

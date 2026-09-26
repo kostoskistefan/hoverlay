@@ -1,5 +1,6 @@
 use crate::{
-    font::manager::FontManager, lua::Configuration, render::RenderEngine, viewport::ViewportManager,
+    font::manager::FontManager, layout::measure_engine::MeasureEngine, lua::Configuration,
+    render::RenderEngine, viewport::ViewportManager,
 };
 use std::{
     error::Error,
@@ -19,6 +20,7 @@ pub struct Application {
     viewport_manager: ViewportManager,
     font_manager: FontManager,
     render_engine: Option<RenderEngine>,
+    measure_engine: MeasureEngine,
     next_render_time: Instant,
 }
 
@@ -26,8 +28,9 @@ impl Application {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let configuration = Configuration::load()?;
         let viewport_manager = ViewportManager::new(configuration.viewport.clone());
-        let font_manager = FontManager::new();
+        let mut font_manager = FontManager::new();
         let render_engine = None;
+        let measure_engine = MeasureEngine::new(font_manager.font_system_mut());
         let next_render_time = Instant::now() + RENDER_INTERVAL;
 
         Ok(Self {
@@ -35,6 +38,7 @@ impl Application {
             viewport_manager,
             font_manager,
             render_engine,
+            measure_engine,
             next_render_time,
         })
     }

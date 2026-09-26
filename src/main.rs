@@ -4,6 +4,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 
 mod application;
 mod font;
+mod layout;
 mod lua;
 mod render;
 mod viewport;
