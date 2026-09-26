@@ -9,7 +9,7 @@ return {
             vertical = 8.0,
         },
     },
-    layout = {
+    container = {
         margin = 6.0,
         spacing = 6.0,
         background = 0x00000000,

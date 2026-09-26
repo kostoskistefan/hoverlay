@@ -1,4 +1,4 @@
-use crate::lua::{layout::Layout, viewport::ViewportParameters};
+use crate::lua::{container::Container, viewport::ViewportParameters};
 use etcetera::{AppStrategy, AppStrategyArgs, choose_app_strategy};
 use mlua::Lua;
 use std::{error::Error, path::PathBuf};
@@ -7,7 +7,7 @@ use std::{error::Error, path::PathBuf};
 pub struct Configuration {
     _lua: Lua,
 
-    pub layout: Layout,
+    pub container: Container,
     pub viewport: ViewportParameters,
 }
 
@@ -20,14 +20,14 @@ impl Configuration {
         let table = lua.load(file_contents).eval::<mlua::Table>()?;
 
         Ok(Self {
-            layout: table.get("layout")?,
+            container: table.get("container")?,
             viewport: table.get("viewport")?,
             _lua: lua,
         })
     }
 
     pub fn update(&mut self) {
-        self.layout.update();
+        self.container.update();
     }
 
     fn get_file_contents(file_path: PathBuf) -> Result<String, Box<dyn Error>> {

@@ -2,14 +2,14 @@ use crate::lua::{color::Color, element::Element};
 use mlua::{FromLua, Lua, Value};
 
 #[derive(Debug)]
-pub struct Layout {
+pub struct Container {
     pub margin: f32,
     pub spacing: f32,
     pub background: Color,
     pub children: Vec<Element>,
 }
 
-impl Layout {
+impl Container {
     pub fn update(&mut self) {
         for child in &mut self.children {
             child.update();
@@ -17,7 +17,7 @@ impl Layout {
     }
 }
 
-impl FromLua for Layout {
+impl FromLua for Container {
     fn from_lua(value: Value, _lua: &Lua) -> mlua::Result<Self> {
         let Value::Table(table) = value else {
             return Err(mlua::Error::FromLuaConversionError {
