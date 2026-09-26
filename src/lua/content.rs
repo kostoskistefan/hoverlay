@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 pub struct Content {
     pub value: String,
-    resolve_function: Option<Function>,
+    pub resolve_function: Option<Function>,
 }
 
 impl Content {

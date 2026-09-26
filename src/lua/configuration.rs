@@ -30,6 +30,13 @@ impl Configuration {
         self.container.update();
     }
 
+    pub fn is_dynamic(&self) -> bool {
+        self.container
+            .children
+            .iter()
+            .any(|element| element.content.resolve_function.is_some())
+    }
+
     fn get_file_contents(file_path: PathBuf) -> Result<String, Box<dyn Error>> {
         if file_path.exists() {
             return Ok(std::fs::read_to_string(file_path)?);

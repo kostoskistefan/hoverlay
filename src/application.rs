@@ -44,8 +44,9 @@ impl Application {
 
     fn render(&mut self) -> Result<(), Box<dyn Error>> {
         self.configuration.update();
-
         self.render_engine()?.render()?;
+
+        println!("Render {:?}", Instant::now());
 
         Ok(())
     }
@@ -73,6 +74,11 @@ impl ApplicationHandler for Application {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if !self.configuration.is_dynamic() {
+            event_loop.set_control_flow(ControlFlow::Wait);
+            return;
+        }
+
         let now = Instant::now();
 
         if now >= self.next_render_time {
