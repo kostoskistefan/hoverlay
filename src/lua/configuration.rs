@@ -8,7 +8,7 @@ pub struct Configuration {
     _lua: Lua,
 
     pub container: Container,
-    pub viewport: ViewportParameters,
+    pub viewport_parameters: ViewportParameters,
 }
 
 impl Configuration {
@@ -21,7 +21,7 @@ impl Configuration {
 
         Ok(Self {
             container: table.get("container")?,
-            viewport: table.get("viewport")?,
+            viewport_parameters: table.get("viewport")?,
             _lua: lua,
         })
     }

@@ -27,7 +27,7 @@ pub struct Application {
 impl Application {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let configuration = Configuration::load()?;
-        let viewport_manager = ViewportManager::new(configuration.viewport.clone());
+        let viewport_manager = ViewportManager::new(configuration.viewport_parameters.clone());
         let mut font_manager = FontManager::new();
         let render_engine = None;
         let measure_engine = MeasureEngine::new(font_manager.font_system_mut());
