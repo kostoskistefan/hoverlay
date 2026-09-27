@@ -1,8 +1,9 @@
 use crate::{
-    layout::{layout::Layout, position::Position, size::Size},
+    layout::layout::Layout,
     lua::{container::Container, element::Element},
 };
 use cosmic_text::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap};
+use winit::dpi::{LogicalPosition, LogicalSize};
 
 pub struct LayoutEngine {
     text_buffer: Buffer,
@@ -29,21 +30,29 @@ impl LayoutEngine {
         }
     }
 
-    fn calculate_positions(element_sizes: &[Size], container: &Container) -> Vec<Position> {
-        let mut y = container.margin;
+    fn calculate_positions(
+        element_sizes: &[LogicalSize<f32>],
+        container: &Container,
+    ) -> Vec<LogicalPosition<f32>> {
+        let margin = container.margin as f32;
+        let spacing = container.spacing as f32;
+
+        let mut y = margin;
         let mut positions = Vec::with_capacity(element_sizes.len());
 
         for size in element_sizes {
-            // TODO: The x coordinate is fixed to container.margin for now to let cosmic-text
-            //       perform the actual text alignment in the render engine
-            positions.push(Position::new(container.margin, y));
-            y += size.height + container.spacing;
+            positions.push(LogicalPosition::<f32>::new(margin, y));
+            y += size.height + spacing;
         }
 
         positions
     }
 
-    fn measure_element(&mut self, element: &Element, font_system: &mut FontSystem) -> Size {
+    fn measure_element(
+        &mut self,
+        element: &Element,
+        font_system: &mut FontSystem,
+    ) -> LogicalSize<f32> {
         let font_size = element.style.font.size;
 
         self.text_buffer
@@ -60,26 +69,30 @@ impl LayoutEngine {
 
         self.text_buffer
             .layout_runs()
-            .fold(Size::default(), |size, run| {
-                Size::new(size.width.max(run.line_w), size.height + run.line_height)
+            .fold(LogicalSize::<f32>::new(0.0, 0.0), |size, run| {
+                LogicalSize::<f32>::new(size.width.max(run.line_w), size.height + run.line_height)
             })
     }
 
-    fn measure_container(element_sizes: &[Size], container: &Container) -> Size {
-        let content_size = element_sizes
-            .iter()
-            .fold(Size::default(), |size, element_size| {
-                Size::new(
-                    size.width.max(element_size.width),
-                    size.height + element_size.height,
-                )
-            });
+    fn measure_container(
+        element_sizes: &[LogicalSize<f32>],
+        container: &Container,
+    ) -> LogicalSize<f32> {
+        let content_size =
+            element_sizes
+                .iter()
+                .fold(LogicalSize::<f32>::new(0.0, 0.0), |size, element_size| {
+                    LogicalSize::<f32>::new(
+                        size.width.max(element_size.width),
+                        size.height + element_size.height,
+                    )
+                });
 
-        let spacing = container.spacing * element_sizes.len().saturating_sub(1) as f32;
+        let spacing = container.spacing as f32 * element_sizes.len().saturating_sub(1) as f32;
 
-        let margin = container.margin * 2.0;
+        let margin = container.margin as f32 * 2.0;
 
-        Size::new(
+        LogicalSize::<f32>::new(
             content_size.width + margin,
             content_size.height + spacing + margin,
         )

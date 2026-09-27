@@ -1,7 +1,7 @@
 use std::{error::Error, sync::Arc};
 
 use winit::{
-    dpi::PhysicalPosition,
+    dpi::LogicalPosition,
     event_loop::ActiveEventLoop,
     window::{WindowAttributes, WindowLevel},
 };
@@ -59,28 +59,26 @@ impl ViewportManager {
             return;
         };
 
-        let monitor_position = monitor.position();
-        let monitor_size = monitor.size();
-        let viewport_size = viewport.outer_size();
         let scale_factor = monitor.scale_factor();
 
-        let horizontal_offset = (self.parameters.offset.horizontal * scale_factor).round() as i32;
-        let vertical_offset = (self.parameters.offset.vertical * scale_factor).round() as i32;
+        let monitor_position = monitor.position().to_logical::<f64>(scale_factor);
+        let monitor_size = monitor.size().to_logical::<f64>(scale_factor);
+        let viewport_size = viewport.outer_size().to_logical::<f64>(scale_factor);
 
-        let position = PhysicalPosition::new(
+        let position = LogicalPosition::new(
             Self::horizontal_position(
                 self.parameters.anchor.horizontal,
                 monitor_position.x,
                 monitor_size.width,
                 viewport_size.width,
-                horizontal_offset,
+                self.parameters.offset.horizontal as f64,
             ),
             Self::vertical_position(
                 self.parameters.anchor.vertical,
                 monitor_position.y,
                 monitor_size.height,
                 viewport_size.height,
-                vertical_offset,
+                self.parameters.offset.vertical as f64,
             ),
         );
 
@@ -89,41 +87,37 @@ impl ViewportManager {
 
     fn horizontal_position(
         anchor: HorizontalAnchor,
-        monitor_position: i32,
-        monitor_width: u32,
-        viewport_width: u32,
-        offset: i32,
-    ) -> i32 {
+        monitor_position: f64,
+        monitor_width: f64,
+        viewport_width: f64,
+        offset: f64,
+    ) -> f64 {
         match anchor {
             HorizontalAnchor::Left => monitor_position + offset,
 
             HorizontalAnchor::Center => {
-                monitor_position + (monitor_width as i32 - viewport_width as i32) / 2 + offset
+                monitor_position + (monitor_width - viewport_width) / 2.0 + offset
             }
 
-            HorizontalAnchor::Right => {
-                monitor_position + monitor_width as i32 - viewport_width as i32 - offset
-            }
+            HorizontalAnchor::Right => monitor_position + monitor_width - viewport_width - offset,
         }
     }
 
     fn vertical_position(
         anchor: VerticalAnchor,
-        monitor_position: i32,
-        monitor_height: u32,
-        viewport_height: u32,
-        offset: i32,
-    ) -> i32 {
+        monitor_position: f64,
+        monitor_height: f64,
+        viewport_height: f64,
+        offset: f64,
+    ) -> f64 {
         match anchor {
             VerticalAnchor::Top => monitor_position + offset,
 
             VerticalAnchor::Center => {
-                monitor_position + (monitor_height as i32 - viewport_height as i32) / 2 + offset
+                monitor_position + (monitor_height - viewport_height) / 2.0 + offset
             }
 
-            VerticalAnchor::Bottom => {
-                monitor_position + monitor_height as i32 - viewport_height as i32 - offset
-            }
+            VerticalAnchor::Bottom => monitor_position + monitor_height - viewport_height - offset,
         }
     }
 

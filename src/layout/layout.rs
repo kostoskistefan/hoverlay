@@ -1,7 +1,7 @@
-use crate::layout::{position::Position, size::Size};
+use winit::dpi::{LogicalPosition, LogicalSize};
 
 #[derive(Debug)]
 pub struct Layout {
-    pub size: Size,
-    pub positions: Vec<Position>,
+    pub size: LogicalSize<f32>,
+    pub positions: Vec<LogicalPosition<f32>>,
 }
