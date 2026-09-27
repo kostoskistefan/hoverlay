@@ -3,8 +3,8 @@ use mlua::{FromLua, Lua, Value};
 
 #[derive(Debug)]
 pub struct Container {
-    pub margin: f32,
-    pub spacing: f32,
+    pub margin: u32,
+    pub spacing: u32,
     pub background: Color,
     pub children: Vec<Element>,
 }

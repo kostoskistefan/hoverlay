@@ -2,8 +2,8 @@ use mlua::{FromLua, Lua, Value};
 
 #[derive(Debug, Clone)]
 pub struct Offset {
-    pub horizontal: f64,
-    pub vertical: f64,
+    pub horizontal: i32,
+    pub vertical: i32,
 }
 
 impl FromLua for Offset {

@@ -5,13 +5,13 @@ return {
             vertical = "bottom",
         },
         offset = {
-            horizontal = 12.0,
-            vertical = 8.0,
+            horizontal = 12,
+            vertical = 8,
         },
     },
     container = {
-        margin = 6.0,
-        spacing = 6.0,
+        margin = 6,
+        spacing = 6,
         background = 0x00000000,
         children = {
             {
