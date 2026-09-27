@@ -34,7 +34,7 @@ impl Configuration {
         self.container
             .children
             .iter()
-            .all(|element| element.content.resolve_function.is_some())
+            .all(|element| element.content.resolve_function.is_none())
     }
 
     fn get_file_contents(file_path: PathBuf) -> Result<String, Box<dyn Error>> {
