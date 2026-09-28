@@ -51,6 +51,7 @@ impl Application {
         }
 
         self.prepare_frame();
+        self.viewport_manager.show_viewport();
 
         Ok(())
     }

@@ -44,6 +44,12 @@ impl ViewportManager {
         Ok(viewport)
     }
 
+    pub fn show_viewport(&self) {
+        if let Some(viewport) = &self.viewport {
+            viewport.set_visible(true);
+        }
+    }
+
     pub fn request_redraw(&self) {
         if let Some(viewport) = &self.viewport {
             viewport.request_redraw();
@@ -123,6 +129,7 @@ impl ViewportManager {
 
     fn viewport_attributes() -> WindowAttributes {
         WindowAttributes::default()
+            .with_visible(false)
             .with_blur(false)
             .with_title("hoverlay")
             .with_transparent(true)
