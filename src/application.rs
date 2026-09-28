@@ -1,9 +1,6 @@
 use crate::{
-    font::manager::FontManager,
-    layout::engine::LayoutEngine,
-    lua::Configuration,
-    render::RenderEngine,
-    viewport::ViewportManager,
+    font::manager::FontManager, layout::engine::LayoutEngine, lua::Configuration,
+    render::RenderEngine, viewport::ViewportManager,
 };
 use std::{
     error::Error,
@@ -53,17 +50,12 @@ impl Application {
             self.render_engine = Some(RenderEngine::new(viewport)?);
         }
 
+        self.prepare_frame();
+
         Ok(())
     }
 
     fn render(&mut self) -> Result<(), Box<dyn Error>> {
-        self.configuration.update();
-
-        self.layout_engine.layout(
-            &self.configuration.container,
-            self.font_manager.font_system_mut(),
-        );
-
         self.render_engine()?.render()?;
 
         Ok(())
@@ -74,6 +66,15 @@ impl Application {
         self.viewport_manager.reposition();
 
         Ok(())
+    }
+
+    fn prepare_frame(&mut self) {
+        self.configuration.update();
+
+        self.layout_engine.layout(
+            &self.configuration.container,
+            self.font_manager.font_system_mut(),
+        );
     }
 
     fn render_engine(&mut self) -> Result<&mut RenderEngine, Box<dyn Error>> {
@@ -102,6 +103,7 @@ impl ApplicationHandler for Application {
             return;
         }
 
+        self.prepare_frame();
         self.viewport_manager.request_redraw();
         self.next_render_time += RENDER_INTERVAL;
     }
