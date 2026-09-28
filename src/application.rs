@@ -30,7 +30,7 @@ impl Application {
         let viewport_manager = ViewportManager::new(configuration.viewport_parameters.clone());
         let font_manager = FontManager::new();
         let render_engine = None;
-        let measure_engine = LayoutEngine::new();
+        let layout_engine = LayoutEngine::new();
         let next_render_time = Instant::now() + RENDER_INTERVAL;
 
         Ok(Self {
@@ -38,7 +38,7 @@ impl Application {
             viewport_manager,
             font_manager,
             render_engine,
-            layout_engine: measure_engine,
+            layout_engine,
             next_render_time,
         })
     }
