@@ -44,14 +44,14 @@ impl Application {
     }
 
     fn resume(&mut self, event_loop: &ActiveEventLoop) -> Result<(), Box<dyn Error>> {
-        let viewport = self.viewport_manager.create_viewport(event_loop)?;
+        let viewport = self.viewport_manager.create(event_loop)?;
 
         if self.render_engine.is_none() {
             self.render_engine = Some(RenderEngine::new(viewport)?);
         }
 
         self.prepare_frame();
-        self.viewport_manager.show_viewport();
+        self.viewport_manager.show();
 
         Ok(())
     }
@@ -72,7 +72,7 @@ impl Application {
     fn prepare_frame(&mut self) {
         self.configuration.update();
 
-        self.layout_engine.layout(
+        self.layout_engine.update(
             &self.configuration.container,
             self.font_manager.font_system_mut(),
         );

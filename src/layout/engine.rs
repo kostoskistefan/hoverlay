@@ -6,6 +6,7 @@ use cosmic_text::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap};
 use winit::dpi::{LogicalPosition, LogicalSize};
 
 pub struct LayoutEngine {
+    layout: Layout,
     text_buffer: Buffer,
 }
 
@@ -14,20 +15,27 @@ impl LayoutEngine {
         let mut text_buffer = Buffer::new_empty(Metrics::new(1.0, 1.0));
         text_buffer.set_wrap(Wrap::None);
 
-        Self { text_buffer }
+        Self {
+            layout: Layout::default(),
+            text_buffer,
+        }
     }
 
-    pub fn layout(&mut self, container: &Container, font_system: &mut FontSystem) -> Layout {
+    pub fn update(&mut self, container: &Container, font_system: &mut FontSystem) {
         let element_sizes = container
             .children
             .iter()
             .map(|element| self.measure_element(element, font_system))
             .collect::<Vec<_>>();
 
-        Layout {
+        self.layout = Layout {
             size: Self::measure_container(&element_sizes, container),
             positions: Self::calculate_positions(&element_sizes, container),
         }
+    }
+
+    pub fn layout(&self) -> &Layout {
+        &self.layout
     }
 
     fn calculate_positions(

@@ -27,7 +27,7 @@ impl ViewportManager {
         }
     }
 
-    pub fn create_viewport(
+    pub fn create(
         &mut self,
         event_loop: &ActiveEventLoop,
     ) -> Result<Arc<Viewport>, Box<dyn Error>> {
@@ -44,7 +44,7 @@ impl ViewportManager {
         Ok(viewport)
     }
 
-    pub fn show_viewport(&self) {
+    pub fn show(&self) {
         if let Some(viewport) = &self.viewport {
             viewport.set_visible(true);
         }
