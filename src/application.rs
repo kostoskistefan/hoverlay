@@ -83,14 +83,22 @@ impl Application {
             .as_mut()
             .ok_or_else(|| "Render engine is not initialized".into())
     }
+
+    fn exit_on_failure(
+        event_loop: &ActiveEventLoop,
+        action_name: &str,
+        result: Result<(), Box<dyn Error>>,
+    ) {
+        if let Err(error) = result {
+            eprintln!("{action_name} failed: {error}");
+            event_loop.exit();
+        }
+    }
 }
 
 impl ApplicationHandler for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        if let Err(error) = self.resume(event_loop) {
-            eprintln!("Resume failed: {error}");
-            event_loop.exit();
-        }
+        Self::exit_on_failure(event_loop, "Resume", self.resume(event_loop));
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
@@ -121,17 +129,11 @@ impl ApplicationHandler for Application {
             }
 
             WindowEvent::Resized(size) => {
-                if let Err(error) = self.resize(size.width, size.height) {
-                    eprintln!("Resize failed: {error}");
-                    event_loop.exit();
-                }
+                Self::exit_on_failure(event_loop, "Resize", self.resize(size.width, size.height));
             }
 
             WindowEvent::RedrawRequested => {
-                if let Err(error) = self.render() {
-                    eprintln!("Rendering failed: {error}");
-                    event_loop.exit();
-                }
+                Self::exit_on_failure(event_loop, "Rendering", self.render());
             }
 
             WindowEvent::KeyboardInput { event, .. } if event.state.is_pressed() => {
