@@ -1,11 +1,14 @@
 use crate::{
-    font::manager::FontManager, layout::engine::LayoutEngine, lua::Configuration,
-    render::RenderEngine, viewport::ViewportManager,
+    font::manager::FontManager,
+    layout::engine::LayoutEngine,
+    lua::Configuration,
+    render::{
+        RenderEngine,
+        scheduler::{Schedule, Scheduler},
+    },
+    viewport::ViewportManager,
 };
-use std::{
-    error::Error,
-    time::{Duration, Instant},
-};
+use std::error::Error;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -13,15 +16,13 @@ use winit::{
     window::WindowId,
 };
 
-const RENDER_INTERVAL: Duration = Duration::from_secs(1);
-
 pub struct Application {
     configuration: Configuration,
     viewport_manager: ViewportManager,
     font_manager: FontManager,
     render_engine: Option<RenderEngine>,
     layout_engine: LayoutEngine,
-    next_render_time: Instant,
+    scheduler: Scheduler,
 }
 
 impl Application {
@@ -31,7 +32,7 @@ impl Application {
         let font_manager = FontManager::new();
         let render_engine = None;
         let layout_engine = LayoutEngine::new();
-        let next_render_time = Instant::now() + RENDER_INTERVAL;
+        let scheduler = Scheduler::new(configuration.is_static());
 
         Ok(Self {
             configuration,
@@ -39,12 +40,12 @@ impl Application {
             font_manager,
             render_engine,
             layout_engine,
-            next_render_time,
+            scheduler,
         })
     }
 
     fn resume(&mut self, event_loop: &ActiveEventLoop) -> Result<(), Box<dyn Error>> {
-        let viewport = self.viewport_manager.create(event_loop)?;
+        let viewport = self.viewport_manager.acquire(event_loop)?;
 
         if self.render_engine.is_none() {
             self.render_engine = Some(RenderEngine::new(viewport)?);
@@ -102,19 +103,20 @@ impl ApplicationHandler for Application {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        if self.configuration.is_static() {
-            event_loop.set_control_flow(ControlFlow::Wait);
-            return;
-        }
+        match self.scheduler.next() {
+            Schedule::Wait => {
+                event_loop.set_control_flow(ControlFlow::Wait);
+            }
 
-        if Instant::now() < self.next_render_time {
-            event_loop.set_control_flow(ControlFlow::WaitUntil(self.next_render_time));
-            return;
-        }
+            Schedule::WaitUntil(time) => {
+                event_loop.set_control_flow(ControlFlow::WaitUntil(time));
+            }
 
-        self.prepare_frame();
-        self.viewport_manager.request_redraw();
-        self.next_render_time += RENDER_INTERVAL;
+            Schedule::Render => {
+                self.prepare_frame();
+                self.viewport_manager.request_redraw();
+            }
+        }
     }
 
     fn window_event(

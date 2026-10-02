@@ -27,7 +27,7 @@ impl ViewportManager {
         }
     }
 
-    pub fn create(
+    pub fn acquire(
         &mut self,
         event_loop: &ActiveEventLoop,
     ) -> Result<Arc<Viewport>, Box<dyn Error>> {
