@@ -29,17 +29,14 @@ impl Application {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let configuration = Configuration::load()?;
         let viewport_manager = ViewportManager::new(configuration.viewport_parameters.clone());
-        let font_manager = FontManager::new();
-        let render_engine = None;
-        let layout_engine = LayoutEngine::new();
         let scheduler = Scheduler::new(configuration.is_static());
 
         Ok(Self {
             configuration,
             viewport_manager,
-            font_manager,
-            render_engine,
-            layout_engine,
+            font_manager: FontManager::new(),
+            render_engine: None,
+            layout_engine: LayoutEngine::new(),
             scheduler,
         })
     }
@@ -58,9 +55,7 @@ impl Application {
     }
 
     fn render(&mut self) -> Result<(), Box<dyn Error>> {
-        self.render_engine()?.render()?;
-
-        Ok(())
+        self.render_engine()?.render()
     }
 
     fn resize(&mut self, width: u32, height: u32) -> Result<(), Box<dyn Error>> {
@@ -84,22 +79,11 @@ impl Application {
             .as_mut()
             .ok_or_else(|| "Render engine is not initialized".into())
     }
-
-    fn exit_on_failure(
-        event_loop: &ActiveEventLoop,
-        action_name: &str,
-        result: Result<(), Box<dyn Error>>,
-    ) {
-        if let Err(error) = result {
-            eprintln!("{action_name} failed: {error}");
-            event_loop.exit();
-        }
-    }
 }
 
 impl ApplicationHandler for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        Self::exit_on_failure(event_loop, "Resume", self.resume(event_loop));
+        exit_on_failure(event_loop, "Resume", self.resume(event_loop));
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
@@ -131,11 +115,11 @@ impl ApplicationHandler for Application {
             }
 
             WindowEvent::Resized(size) => {
-                Self::exit_on_failure(event_loop, "Resize", self.resize(size.width, size.height));
+                exit_on_failure(event_loop, "Resize", self.resize(size.width, size.height));
             }
 
             WindowEvent::RedrawRequested => {
-                Self::exit_on_failure(event_loop, "Rendering", self.render());
+                exit_on_failure(event_loop, "Rendering", self.render());
             }
 
             WindowEvent::KeyboardInput { event, .. } if event.state.is_pressed() => {
@@ -156,5 +140,16 @@ impl ApplicationHandler for Application {
 
             _ => {}
         }
+    }
+}
+
+fn exit_on_failure(
+    event_loop: &ActiveEventLoop,
+    action_name: &str,
+    result: Result<(), Box<dyn Error>>,
+) {
+    if let Err(error) = result {
+        eprintln!("{action_name} failed: {error}");
+        event_loop.exit();
     }
 }
