@@ -8,6 +8,14 @@ return {
             horizontal = 12,
             vertical = 8,
         },
+        size = {
+            policy = "fixed",
+            width = 200,
+            height = 100,
+        },
+        -- size = {
+        --     policy = "initial_content",
+        -- },
     },
     container = {
         margin = 6,

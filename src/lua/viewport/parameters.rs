@@ -1,10 +1,11 @@
-use crate::lua::{anchor::Anchor, offset::Offset};
+use crate::lua::{anchor::Anchor, offset::Offset, viewport::ViewportSizePolicy};
 use mlua::{FromLua, Lua, Value};
 
 #[derive(Debug, Clone)]
 pub struct ViewportParameters {
     pub anchor: Anchor,
     pub offset: Offset,
+    pub size_policy: ViewportSizePolicy,
 }
 
 impl FromLua for ViewportParameters {
@@ -20,6 +21,7 @@ impl FromLua for ViewportParameters {
         Ok(Self {
             anchor: table.get("anchor")?,
             offset: table.get("offset")?,
+            size_policy: table.get("size")?,
         })
     }
 }

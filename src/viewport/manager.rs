@@ -1,7 +1,7 @@
 use std::{error::Error, sync::Arc};
 
 use winit::{
-    dpi::LogicalPosition,
+    dpi::{LogicalPosition, LogicalSize},
     event_loop::ActiveEventLoop,
     window::{WindowAttributes, WindowLevel},
 };
@@ -9,7 +9,7 @@ use winit::{
 use crate::{
     lua::{
         anchor::{HorizontalAnchor, VerticalAnchor},
-        viewport::ViewportParameters,
+        viewport::{ViewportParameters, ViewportSizePolicy},
     },
     viewport::Viewport,
 };
@@ -27,15 +27,27 @@ impl ViewportManager {
         }
     }
 
-    pub fn acquire(
+    pub fn get_or_create(
         &mut self,
         event_loop: &ActiveEventLoop,
+        initial_content_size: LogicalSize<f32>,
     ) -> Result<Arc<Viewport>, Box<dyn Error>> {
         if let Some(viewport) = &self.viewport {
             return Ok(viewport.clone());
         }
 
-        let viewport = Arc::new(event_loop.create_window(Self::viewport_attributes())?);
+        let mut attributes = Self::viewport_attributes();
+
+        match &self.parameters.size_policy {
+            ViewportSizePolicy::Fixed(size) => {
+                attributes = attributes.with_inner_size(*size);
+            }
+            ViewportSizePolicy::InitialContent => {
+                attributes = attributes.with_inner_size(initial_content_size);
+            }
+        }
+
+        let viewport = Arc::new(event_loop.create_window(attributes)?);
 
         viewport.set_cursor_hittest(false)?;
 

@@ -42,13 +42,16 @@ impl Application {
     }
 
     fn resume(&mut self, event_loop: &ActiveEventLoop) -> Result<(), Box<dyn Error>> {
-        let viewport = self.viewport_manager.acquire(event_loop)?;
+        self.prepare_frame();
+
+        let viewport = self
+            .viewport_manager
+            .get_or_create(event_loop, self.layout_engine.layout().size)?;
 
         if self.render_engine.is_none() {
             self.render_engine = Some(RenderEngine::new(viewport)?);
         }
 
-        self.prepare_frame();
         self.viewport_manager.show();
 
         Ok(())
