@@ -3,11 +3,16 @@ use super::{
     text_buffer_factory::TextBufferFactory, text_renderer::TextRenderer,
 };
 use crate::{
-    layout::layout::Layout,
-    lua::{container::Container, element::Element},
+    layout::layout::Layout, lua::{color::Color, container::Container, element::Element},
 };
 use cosmic_text::FontSystem;
 use winit::dpi::LogicalPosition;
+
+#[derive(Copy, Clone)]
+pub enum TextLayer {
+    Main,
+    Shadow,
+}
 
 pub struct ContainerRenderer {
     text_renderer: TextRenderer,
@@ -24,6 +29,7 @@ impl ContainerRenderer {
         &mut self,
         container: &Container,
         layout: &Layout,
+        text_layer: TextLayer,
         font_system: &mut FontSystem,
         canvas: &mut Canvas<'_>,
     ) {
@@ -34,13 +40,21 @@ impl ContainerRenderer {
         );
 
         for (element, position) in container.children.iter().zip(&layout.positions) {
-            self.render_element(element, *position, &content_area, font_system, canvas);
+            self.render_element(
+                element,
+                text_layer,
+                *position,
+                &content_area,
+                font_system,
+                canvas,
+            );
         }
     }
 
     fn render_element(
         &mut self,
         element: &Element,
+        text_layer: TextLayer,
         position: LogicalPosition<f32>,
         content_area: &ContentArea,
         font_system: &mut FontSystem,
@@ -53,9 +67,16 @@ impl ContainerRenderer {
 
         self.text_renderer.render(
             &mut text_buffer,
-            element.style.color,
+            Self::select_text_color(element, text_layer),
             font_system,
             glyph_renderer,
         );
+    }
+
+    fn select_text_color(element: &Element, text_layer: TextLayer) -> Color {
+        match text_layer {
+            TextLayer::Main => element.style.color,
+            TextLayer::Shadow => element.style.shadow_color,
+        }
     }
 }

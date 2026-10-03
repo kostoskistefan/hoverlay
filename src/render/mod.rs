@@ -1,3 +1,4 @@
+pub mod blur;
 pub mod canvas;
 pub mod container_renderer;
 pub mod content_area;

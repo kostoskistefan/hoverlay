@@ -5,6 +5,7 @@ use mlua::{FromLua, Lua, Value};
 pub struct Style {
     pub alignment: Alignment,
     pub color: Color,
+    pub shadow_color: Color,
     pub font: Font,
 }
 
@@ -21,6 +22,7 @@ impl FromLua for Style {
         Ok(Self {
             alignment: table.get("alignment")?,
             color: table.get("color")?,
+            shadow_color: table.get("shadow_color")?,
             font: table.get("font")?,
         })
     }

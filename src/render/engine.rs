@@ -1,7 +1,11 @@
 use crate::{
     layout::layout::Layout,
     lua::container::Container,
-    render::{canvas::Canvas, container_renderer::ContainerRenderer},
+    render::{
+        blur::BoxBlur,
+        canvas::Canvas,
+        container_renderer::{ContainerRenderer, TextLayer},
+    },
     viewport::Viewport,
 };
 use cosmic_text::FontSystem;
@@ -12,6 +16,7 @@ pub struct RenderEngine {
     _context: Context<Arc<Viewport>>,
     surface: Surface<Arc<Viewport>, Arc<Viewport>>,
     container_renderer: ContainerRenderer,
+    box_blur: BoxBlur,
 }
 
 impl RenderEngine {
@@ -26,6 +31,7 @@ impl RenderEngine {
             _context: context,
             surface,
             container_renderer: ContainerRenderer::new(),
+            box_blur: BoxBlur::new(),
         })
     }
 
@@ -43,8 +49,23 @@ impl RenderEngine {
 
         canvas.fill(container.background.premultiplied().value());
 
-        self.container_renderer
-            .render(container, layout, font_system, &mut canvas);
+        self.container_renderer.render(
+            container,
+            layout,
+            TextLayer::Shadow,
+            font_system,
+            &mut canvas,
+        );
+
+        self.box_blur.apply(&mut canvas, 3);
+
+        self.container_renderer.render(
+            container,
+            layout,
+            TextLayer::Main,
+            font_system,
+            &mut canvas,
+        );
 
         canvas.present()?;
 

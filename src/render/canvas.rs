@@ -42,6 +42,10 @@ impl<'surface> Canvas<'surface> {
             .value();
     }
 
+    pub fn pixels_mut(&mut self) -> &mut [u32] {
+        &mut self.buffer
+    }
+
     fn contains(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && x < self.width() as i32 && y < self.height() as i32
     }

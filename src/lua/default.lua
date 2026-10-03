@@ -9,12 +9,12 @@ return {
             vertical = 8,
         },
         size = {
-            policy = "fixed",
-            width = 200,
-            height = 100,
+            policy = "initial_content",
         },
         -- size = {
-        --     policy = "initial_content",
+        --     policy = "fixed",
+        --     width = 200,
+        --     height = 100,
         -- },
     },
     container = {
@@ -26,9 +26,10 @@ return {
                 content = "Hello!",
                 style = {
                     alignment = "left",
-                    color = 0xffff0000,
+                    color = 0xffffffff,
+                    shadow_color = 0xff000000,
                     font = {
-                        family = "sans-serif",
+                        family = "Roboto",
                         size = 12.0,
                     },
                 },
@@ -40,8 +41,9 @@ return {
                 style = {
                     alignment = "center",
                     color = 0xff00ff00,
+                    shadow_color = 0xff000000,
                     font = {
-                        family = "sans-serif",
+                        family = "Inter",
                         size = 12.0,
                     },
                 },
@@ -53,8 +55,9 @@ return {
                 style = {
                     alignment = "right",
                     color = 0xff0000ff,
+                    shadow_color = 0xff000000,
                     font = {
-                        family = "sans-serif",
+                        family = "font-that-doesnt-exist-falls-back-to-noto-sans",
                         size = 12.0,
                     },
                 },

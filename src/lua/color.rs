@@ -4,7 +4,7 @@ use mlua::{FromLua, Lua, Value};
 pub struct Color(u32);
 
 impl Color {
-    const MAXIMUM_CHANNEL_VALUE: u32 = 255;
+    pub const MAXIMUM_CHANNEL_VALUE: u32 = 255;
 
     pub const fn new(value: u32) -> Self {
         Self(value)
@@ -55,24 +55,40 @@ impl Color {
         (channel * alpha + 127) / Self::MAXIMUM_CHANNEL_VALUE
     }
 
-    const fn from_channels(alpha: u32, red: u32, green: u32, blue: u32) -> Self {
+    pub const fn from_channels(alpha: u32, red: u32, green: u32, blue: u32) -> Self {
         Self::new((alpha << 24) | (red << 16) | (green << 8) | blue)
     }
 
-    const fn alpha(&self) -> u32 {
+    pub const fn alpha(&self) -> u32 {
         self.0 >> 24
     }
 
-    const fn red(&self) -> u32 {
+    pub const fn red(&self) -> u32 {
         (self.0 >> 16) & 0xff
     }
 
-    const fn green(&self) -> u32 {
+    pub const fn green(&self) -> u32 {
         (self.0 >> 8) & 0xff
     }
 
-    const fn blue(&self) -> u32 {
+    pub const fn blue(&self) -> u32 {
         self.0 & 0xff
+    }
+
+    pub fn composite_over_premultiplied(&self, background: &Color) -> Self {
+        let inverse_alpha = Self::MAXIMUM_CHANNEL_VALUE - self.alpha();
+
+        let composite_channel = |foreground_channel: u32, background_channel: u32| {
+            (foreground_channel + Self::multiply_channel(background_channel, inverse_alpha))
+                .min(Self::MAXIMUM_CHANNEL_VALUE)
+        };
+
+        Self::from_channels(
+            composite_channel(self.alpha(), background.alpha()),
+            composite_channel(self.red(), background.red()),
+            composite_channel(self.green(), background.green()),
+            composite_channel(self.blue(), background.blue()),
+        )
     }
 
     fn conversion_error(from: &'static str) -> mlua::Error {
