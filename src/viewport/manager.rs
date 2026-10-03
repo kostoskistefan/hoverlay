@@ -36,16 +36,40 @@ impl ViewportManager {
             return Ok(viewport.clone());
         }
 
-        let mut attributes = Self::viewport_attributes();
+        let size = match &self.parameters.size_policy {
+            ViewportSizePolicy::Fixed(size) => size.cast::<f64>(),
+            ViewportSizePolicy::InitialContent => initial_content_size.cast::<f64>(),
+        };
 
-        match &self.parameters.size_policy {
-            ViewportSizePolicy::Fixed(size) => {
-                attributes = attributes.with_inner_size(*size);
-            }
-            ViewportSizePolicy::InitialContent => {
-                attributes = attributes.with_inner_size(initial_content_size);
-            }
-        }
+        let monitor = event_loop
+            .primary_monitor()
+            .ok_or("No primary monitor available")?;
+
+        let scale_factor = monitor.scale_factor();
+
+        let monitor_position = monitor.position().to_logical::<f64>(scale_factor);
+        let monitor_size = monitor.size().to_logical::<f64>(scale_factor);
+
+        let position = LogicalPosition::new(
+            Self::horizontal_position(
+                self.parameters.anchor.horizontal,
+                monitor_position.x,
+                monitor_size.width,
+                size.width,
+                self.parameters.offset.horizontal as f64,
+            ),
+            Self::vertical_position(
+                self.parameters.anchor.vertical,
+                monitor_position.y,
+                monitor_size.height,
+                size.height,
+                self.parameters.offset.vertical as f64,
+            ),
+        );
+
+        let attributes = Self::viewport_attributes()
+            .with_inner_size(size)
+            .with_position(position);
 
         let viewport = Arc::new(event_loop.create_window(attributes)?);
 
