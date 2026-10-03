@@ -7,24 +7,8 @@ impl Color {
         Self(value)
     }
 
-    pub const fn value(self) -> u32 {
+    pub const fn value(&self) -> u32 {
         self.0
-    }
-
-    pub const fn red(self) -> u8 {
-        (self.0 >> 24) as u8
-    }
-
-    pub const fn green(self) -> u8 {
-        (self.0 >> 16) as u8
-    }
-
-    pub const fn blue(self) -> u8 {
-        (self.0 >> 8) as u8
-    }
-
-    pub const fn alpha(self) -> u8 {
-        self.0 as u8
     }
 
     fn conversion_error(from: &'static str) -> mlua::Error {
@@ -33,6 +17,18 @@ impl Color {
             to: std::any::type_name::<Self>().to_owned(),
             message: Some("expected a 32-bit RGBA color".into()),
         }
+    }
+}
+
+impl From<Color> for cosmic_text::Color {
+    fn from(color: Color) -> Self {
+        cosmic_text::Color(color.0)
+    }
+}
+
+impl From<cosmic_text::Color> for Color {
+    fn from(color: cosmic_text::Color) -> Self {
+        Self::new(color.0)
     }
 }
 
