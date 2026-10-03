@@ -1,4 +1,5 @@
 use crate::{
+    ApplicationEvent,
     font::manager::FontManager,
     layout::engine::LayoutEngine,
     lua::Configuration,
@@ -8,7 +9,9 @@ use crate::{
     },
     viewport::ViewportManager,
 };
+
 use std::error::Error;
+
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -29,6 +32,7 @@ impl Application {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let configuration = Configuration::load()?;
         let viewport_manager = ViewportManager::new(configuration.viewport_parameters.clone());
+
         let scheduler = Scheduler::new(configuration.is_static());
 
         Ok(Self {
@@ -92,7 +96,7 @@ impl Application {
     }
 }
 
-impl ApplicationHandler for Application {
+impl ApplicationHandler<crate::ApplicationEvent> for Application {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         exit_on_failure(event_loop, "Resume", self.resume(event_loop));
     }
@@ -114,6 +118,14 @@ impl ApplicationHandler for Application {
         }
     }
 
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: crate::ApplicationEvent) {
+        match event {
+            ApplicationEvent::Shutdown => {
+                event_loop.exit();
+            }
+        }
+    }
+
     fn window_event(
         &mut self,
         event_loop: &ActiveEventLoop,
@@ -131,22 +143,6 @@ impl ApplicationHandler for Application {
 
             WindowEvent::RedrawRequested => {
                 exit_on_failure(event_loop, "Rendering", self.render());
-            }
-
-            WindowEvent::KeyboardInput { event, .. } if event.state.is_pressed() => {
-                match &event.logical_key {
-                    winit::keyboard::Key::Named(winit::keyboard::NamedKey::Escape) => {
-                        event_loop.exit();
-                    }
-
-                    winit::keyboard::Key::Character(character)
-                        if character.eq_ignore_ascii_case("q") =>
-                    {
-                        event_loop.exit();
-                    }
-
-                    _ => {}
-                }
             }
 
             _ => {}

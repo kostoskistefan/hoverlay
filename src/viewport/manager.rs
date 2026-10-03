@@ -140,12 +140,28 @@ impl ViewportManager {
     }
 
     fn viewport_attributes() -> WindowAttributes {
-        WindowAttributes::default()
+        let attributes = WindowAttributes::default()
             .with_visible(false)
             .with_blur(false)
             .with_title("hoverlay")
             .with_transparent(true)
             .with_decorations(false)
-            .with_window_level(WindowLevel::AlwaysOnTop)
+            .with_window_level(WindowLevel::AlwaysOnTop);
+
+        #[cfg(target_os = "windows")]
+        let attributes = {
+            use winit::platform::windows::WindowAttributesExtWindows;
+
+            attributes.with_skip_taskbar(true)
+        };
+
+        #[cfg(target_os = "linux")]
+        let attributes = {
+            use winit::platform::x11::{WindowAttributesExtX11, WindowType};
+
+            attributes.with_x11_window_type(vec![WindowType::Dock])
+        };
+
+        attributes
     }
 }

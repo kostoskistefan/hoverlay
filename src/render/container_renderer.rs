@@ -3,7 +3,8 @@ use super::{
     text_buffer_factory::TextBufferFactory, text_renderer::TextRenderer,
 };
 use crate::{
-    layout::layout::Layout, lua::{color::Color, container::Container, element::Element},
+    layout::layout::Layout,
+    lua::{color::Color, container::Container, element::Element},
 };
 use cosmic_text::FontSystem;
 use winit::dpi::LogicalPosition;
