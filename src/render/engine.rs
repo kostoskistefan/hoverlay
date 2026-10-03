@@ -1,10 +1,17 @@
-use crate::viewport::Viewport;
+use crate::{
+    layout::layout::Layout,
+    lua::container::Container,
+    render::{canvas::Canvas, container_renderer::ContainerRenderer},
+    viewport::Viewport,
+};
+use cosmic_text::FontSystem;
 use softbuffer::{Context, Surface};
 use std::{error::Error, num::NonZeroU32, sync::Arc};
 
 pub struct RenderEngine {
     _context: Context<Arc<Viewport>>,
     surface: Surface<Arc<Viewport>, Arc<Viewport>>,
+    container_renderer: ContainerRenderer,
 }
 
 impl RenderEngine {
@@ -13,39 +20,47 @@ impl RenderEngine {
         let mut surface = Surface::new(&context, viewport.clone())?;
 
         let size = viewport.inner_size();
-
-        if let (Some(width), Some(height)) =
-            (NonZeroU32::new(size.width), NonZeroU32::new(size.height))
-        {
-            surface.resize(width, height)?;
-        }
+        Self::resize_surface(&mut surface, size.width, size.height)?;
 
         Ok(Self {
             _context: context,
             surface,
+            container_renderer: ContainerRenderer::new(),
         })
     }
 
     pub fn resize(&mut self, width: u32, height: u32) -> Result<(), Box<dyn Error>> {
-        let Some(width) = NonZeroU32::new(width) else {
-            return Ok(());
-        };
+        Self::resize_surface(&mut self.surface, width, height)
+    }
 
-        let Some(height) = NonZeroU32::new(height) else {
-            return Ok(());
-        };
+    pub fn render(
+        &mut self,
+        container: &Container,
+        layout: &Layout,
+        font_system: &mut FontSystem,
+    ) -> Result<(), Box<dyn Error>> {
+        let mut canvas = Canvas::new(self.surface.buffer_mut()?);
 
-        self.surface.resize(width, height)?;
+        canvas.fill(container.background.premultiplied().value());
+
+        self.container_renderer
+            .render(container, layout, font_system, &mut canvas);
+
+        canvas.present()?;
 
         Ok(())
     }
 
-    pub fn render(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut buffer = self.surface.buffer_mut()?;
-
-        buffer.fill(0xff000000);
-
-        buffer.present()?;
+    fn resize_surface(
+        surface: &mut Surface<Arc<Viewport>, Arc<Viewport>>,
+        width: u32,
+        height: u32,
+    ) -> Result<(), Box<dyn Error>> {
+        if let (Some(non_zero_width), Some(non_zero_height)) =
+            (NonZeroU32::new(width), NonZeroU32::new(height))
+        {
+            surface.resize(non_zero_width, non_zero_height)?;
+        }
 
         Ok(())
     }

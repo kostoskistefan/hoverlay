@@ -58,11 +58,25 @@ impl Application {
     }
 
     fn render(&mut self) -> Result<(), Box<dyn Error>> {
-        self.render_engine()?.render()
+        let Some(render_engine) = self.render_engine.as_mut() else {
+            return Err("Render engine is not initialized".into());
+        };
+
+        render_engine.render(
+            &self.configuration.container,
+            &self.layout_engine.layout(),
+            self.font_manager.font_system_mut(),
+        )?;
+
+        Ok(())
     }
 
     fn resize(&mut self, width: u32, height: u32) -> Result<(), Box<dyn Error>> {
-        self.render_engine()?.resize(width, height)?;
+        let Some(render_engine) = self.render_engine.as_mut() else {
+            return Err("Render engine is not initialized".into());
+        };
+
+        render_engine.resize(width, height)?;
         self.viewport_manager.reposition();
 
         Ok(())
@@ -75,12 +89,6 @@ impl Application {
             &self.configuration.container,
             self.font_manager.font_system_mut(),
         );
-    }
-
-    fn render_engine(&mut self) -> Result<&mut RenderEngine, Box<dyn Error>> {
-        self.render_engine
-            .as_mut()
-            .ok_or_else(|| "Render engine is not initialized".into())
     }
 }
 

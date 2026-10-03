@@ -1,14 +1,78 @@
 use mlua::{FromLua, Lua, Value};
 
+#[derive(Copy, Clone)]
 pub struct Color(u32);
 
 impl Color {
+    const MAXIMUM_CHANNEL_VALUE: u32 = 255;
+
     pub const fn new(value: u32) -> Self {
         Self(value)
     }
 
     pub const fn value(&self) -> u32 {
         self.0
+    }
+
+    pub fn premultiplied(&self) -> Self {
+        let alpha = self.alpha();
+
+        Self::from_channels(
+            alpha,
+            Self::multiply_channel(self.red(), alpha),
+            Self::multiply_channel(self.green(), alpha),
+            Self::multiply_channel(self.blue(), alpha),
+        )
+    }
+
+    pub fn blend_premultiplied_background(&self, straight_foreground: &Color) -> Self {
+        if straight_foreground.alpha() == 0 {
+            return *self;
+        }
+
+        if straight_foreground.alpha() == Self::MAXIMUM_CHANNEL_VALUE {
+            return *straight_foreground;
+        }
+
+        let foreground = straight_foreground.premultiplied();
+        let inverse_foreground_alpha = Self::MAXIMUM_CHANNEL_VALUE - straight_foreground.alpha();
+
+        let blend_channel = |foreground_channel: u32, background_channel: u32| {
+            (foreground_channel
+                + Self::multiply_channel(background_channel, inverse_foreground_alpha))
+            .min(Self::MAXIMUM_CHANNEL_VALUE)
+        };
+
+        Self::from_channels(
+            blend_channel(foreground.alpha(), self.alpha()),
+            blend_channel(foreground.red(), self.red()),
+            blend_channel(foreground.green(), self.green()),
+            blend_channel(foreground.blue(), self.blue()),
+        )
+    }
+
+    const fn multiply_channel(channel: u32, alpha: u32) -> u32 {
+        (channel * alpha + 127) / Self::MAXIMUM_CHANNEL_VALUE
+    }
+
+    const fn from_channels(alpha: u32, red: u32, green: u32, blue: u32) -> Self {
+        Self::new((alpha << 24) | (red << 16) | (green << 8) | blue)
+    }
+
+    const fn alpha(&self) -> u32 {
+        self.0 >> 24
+    }
+
+    const fn red(&self) -> u32 {
+        (self.0 >> 16) & 0xff
+    }
+
+    const fn green(&self) -> u32 {
+        (self.0 >> 8) & 0xff
+    }
+
+    const fn blue(&self) -> u32 {
+        self.0 & 0xff
     }
 
     fn conversion_error(from: &'static str) -> mlua::Error {
@@ -19,7 +83,6 @@ impl Color {
         }
     }
 }
-
 impl From<Color> for cosmic_text::Color {
     fn from(color: Color) -> Self {
         cosmic_text::Color(color.0)
