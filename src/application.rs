@@ -56,7 +56,7 @@ impl Application {
             self.render_engine = Some(RenderEngine::new(viewport)?);
         }
 
-        self.viewport_manager.show();
+        self.viewport_manager.show()?;
 
         Ok(())
     }

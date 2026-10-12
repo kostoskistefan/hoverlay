@@ -73,17 +73,18 @@ impl ViewportManager {
 
         let viewport = Arc::new(event_loop.create_window(attributes)?);
 
-        viewport.set_cursor_hittest(false)?;
-
         self.viewport = Some(viewport.clone());
 
         Ok(viewport)
     }
 
-    pub fn show(&self) {
+    pub fn show(&self) -> Result<(), Box<dyn Error>> {
         if let Some(viewport) = &self.viewport {
             viewport.set_visible(true);
+            viewport.set_cursor_hittest(false)?;
         }
+
+        Ok(())
     }
 
     pub fn request_redraw(&self) {
